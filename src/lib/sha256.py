@@ -2,10 +2,13 @@ import struct
 import binascii
 
 def pad(src : str) -> bytes:
-    # Assuming input normal ASCII text file
+    # Assuming input normal binary file,
+    #   appending bit '1', '10', '100', ..., '1000 000' will never divisible by 512
+    #   due normal binary file bit length always divisible by 8 / binary file always accessed in 8 bit (1 byte).
+    # Therefore minimum K is 7
     L       = 8*len(src)
     found_k = False
-    K       = 0
+    K       = 0          # Note : This K is offset by 7 from K in SHA2-256 wikipedia documentation
     while not found_k:
         if (L + 1 + (K + 7) + 64) % 512 == 0:
             found_k = True
@@ -31,7 +34,7 @@ def rrot(src : int, count : int) -> int:
 
     return shr ^ (mask & src) << (32 - count)
 
-def sha256(src : str) -> hex:
+def sha256(src : str) -> str:
     h_const = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
     k_const = [
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -57,7 +60,7 @@ def sha256(src : str) -> hex:
 
         for i in range(64):
             S1    = rrot(e, 6) ^ rrot(e, 11) ^ rrot(e, 25)
-            ch    = (e & f)    ^ ((~e & 0xFFFFFFFF) & g)   # Special treatment for python bitwise not
+            ch    = (e & f)    ^ ((~e & 0xFFFFFFFF) & g)           # Special treatment for python bitwise not
             temp1 =( h + S1 + ch + k_const[i] + w[i]) % (1 << 32)
             S0    = rrot(a, 2) ^ rrot(a, 13) ^ rrot(a, 22)
             maj   = (a & b) ^ (a & c) ^ (b & c)
