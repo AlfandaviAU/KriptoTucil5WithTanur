@@ -1,4 +1,4 @@
-import lib.sha256 as sha256, lib.rsa as rsa
+from . import rsa, sha256
 
 def strip_sign_tag(src : str) -> str:
     # Also stripping \n in signature (-1 in index)
